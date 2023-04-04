@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 const fs = require('fs');
 let status = new Object();
-const DATADIR = `${process.env.HOME}/.local/share/tl.sh`;
+const DATADIR = `${process.env.HOME}/.local/share/tl.js`;
 const DATAFILE = `${DATADIR}/data`;
 
 function bootstrap() {
-	if (!fs.existsSync(DATADIR)) {
+	if (!fs.existsSync(DATADIR))
 		fs.mkdirSync(DATADIR);
+	if (!fs.existsSync(DATAFILE))
 		fs.appendFileSync(DATAFILE, JSON.stringify(status));
-	}
 }
 
 function close() {
