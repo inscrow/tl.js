@@ -81,6 +81,8 @@ function remove() {
 		status.list.splice(status.cursor, 1);
 	if (status.cursor >= status.list.length)
 		status.cursor = status.list.length - 1;
+	if (status.list.length === 0)
+		status.cursor = undefined;
 }
 
 function change() {
