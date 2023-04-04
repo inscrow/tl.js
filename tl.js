@@ -56,10 +56,13 @@ function moveDown() {
 		status.cursor++;
 }
 
-function prompt() {
+function prompt(base) {
 	process.stdin.setRawMode(false);
 	console.log("\x1b[?25h"); // show cursor again
-	var res = prpt("* ").trim();
+	if (base !== undefined)
+		var res = prpt("* ", base).trim();
+	else
+		var res = prpt("* ").trim();
 	console.log("\x1b[?25l"); // hide cursor
 	process.stdin.setRawMode(true);
 	return res;
@@ -84,7 +87,7 @@ function remove() {
 
 function change() {
 	if (status.list !== undefined && status.cursor !== undefined)
-		status.list.splice(status.cursor, 1, prompt());
+		status.list.splice(status.cursor, 1, prompt(status.list[status.cursor]));
 }
 
 // FIXME: sometimes app lags a bit, I don't know if it's because of redrawing
