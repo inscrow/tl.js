@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const prpt = require('prompt-sync')();
 let status = new Object();
 const DATADIR = `${process.env.HOME}/.local/share/tl.js`;
 const DATAFILE = `${DATADIR}/data`;
@@ -31,17 +32,16 @@ function startup() {
 	status = JSON.parse(fs.readFileSync(DATAFILE));
 }
 
-// FIXME: draws a undefined element the first time I add something to the list
 function draw() {
 	console.clear();
-	console.log("\x1b[32;1m*TODO LIST*\x1b[0m\n");
+	console.log("\x1b[32;1m*TODO LIST*\x1b[0m");
 	if (status.list !== undefined && status.list.length > 0 && status.cursor !== undefined) {
 		for (let i = 0; i < status.cursor; i++) {
-			console.log(`* ${status.list[i]}`)
+			console.log(`\n* ${status.list[i]}`)
 		}
-		console.log(`\x1b[45;30m* ${status.list[status.cursor]}\x1b[0m`);
+		console.log(`\n\x1b[45;30m* ${status.list[status.cursor]}\x1b[0m`);
 		for (let i = status.cursor+1; i < status.list.length; i++) {
-			console.log(`* ${status.list[i]}`)
+			console.log(`\n* ${status.list[i]}`)
 		}
 	}
 }
@@ -56,13 +56,10 @@ function moveDown() {
 		status.cursor++;
 }
 
-// FIXME: `readSync` is complicated to use, because it requires `<Buffer>`
-// argument. `readFileSync` is not really better, because it reads an entire
-// file from `stdin`, so I need `<C-d>` to stop input
 function prompt() {
 	process.stdin.setRawMode(false);
 	console.log("\x1b[?25h"); // show cursor again
-	var res = fs.readFileSync('/dev/stdin').toString();
+	var res = prpt("* ").trim();
 	console.log("\x1b[?25l"); // hide cursor
 	process.stdin.setRawMode(true);
 	return res;
