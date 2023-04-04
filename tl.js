@@ -34,15 +34,14 @@ function startup() {
 // FIXME: draws a undefined element the first time I add something to the list
 function draw() {
 	console.clear();
-	console.log("\x1b[32;1m*TODO LIST*\x1b[0m");
+	console.log("\x1b[32;1m*TODO LIST*\x1b[0m\n");
 	if (status.list !== undefined && status.list.length > 0 && status.cursor !== undefined) {
 		for (let i = 0; i < status.cursor; i++) {
-			console.log(`\n* ${status.list[i]}`)
+			console.log(`* ${status.list[i]}`)
 		}
-		console.log();
-		console.log(`\n\x1b[45;30m* ${status.list[status.cursor]}\x1b[0m`);
+		console.log(`\x1b[45;30m* ${status.list[status.cursor]}\x1b[0m`);
 		for (let i = status.cursor+1; i < status.list.length; i++) {
-			console.log(`\n* ${status.list[i]}`)
+			console.log(`* ${status.list[i]}`)
 		}
 	}
 }
