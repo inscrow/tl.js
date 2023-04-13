@@ -32,28 +32,28 @@ function startup() {
 	status = JSON.parse(fs.readFileSync(DATAFILE));
 }
 
+// FIXME: app flickers at every redraw
 function draw() {
 	console.clear();
 	console.log("\x1b[32;1m*TODO LIST*\x1b[0m");
 	if (status.list !== undefined && status.list.length > 0 && status.cursor !== undefined) {
-		for (let i = 0; i < status.cursor; i++) {
-			console.log(`\n* ${status.list[i]}`)
-		}
-		console.log(`\n\x1b[45;30m* ${status.list[status.cursor]}\x1b[0m`);
-		for (let i = status.cursor+1; i < status.list.length; i++) {
-			console.log(`\n* ${status.list[i]}`)
+		for (let i = 0; i < status.list.length; i++) {
+			if (i == status.cursor)
+				console.log(`\n\x1b[45;30m* ${status.list[i]}\x1b[0m`);
+			else
+				console.log(`\n* ${status.list[i]}`)
 		}
 	}
 }
 
-function moveUp() {
-	if (status.cursor !== undefined && status.cursor > 0)
-		status.cursor--;
-}
-
-function moveDown() {
-	if (status.cursor !== undefined && status.list !== undefined && status.cursor < status.list.length-1)
-		status.cursor++;
+function move(delta) {
+	if (status.cursor !== undefined &&
+		status.list !== undefined &&
+		status.cursor+delta < status.list.length &&
+		status.cursor+delta >= 0) {
+		status.cursor += delta;
+		draw();
+	}
 }
 
 function prompt(base) {
@@ -74,6 +74,8 @@ function append() {
 	status.list.push(prompt());
 	if (status.cursor === undefined)
 		status.cursor = 0;
+	// Because `prompt` function already draws the '*', I don't need to redraw
+	// anything
 }
 
 function remove() {
@@ -83,15 +85,16 @@ function remove() {
 		status.cursor = status.list.length - 1;
 	if (status.list.length === 0)
 		status.cursor = undefined;
+	draw();
 }
 
 function change() {
-	if (status.list !== undefined && status.cursor !== undefined)
+	if (status.list !== undefined && status.cursor !== undefined) {
 		status.list.splice(status.cursor, 1, prompt(status.list[status.cursor]));
+		draw();
+	}
 }
 
-// FIXME: sometimes app lags a bit, I don't know if it's because of redrawing
-// or because of this switch statement
 function handleKey(key) {
 	var validKey = true;
 	switch (key) {
@@ -104,10 +107,10 @@ function handleKey(key) {
 
 		// move cursor
 		case 'j':
-			moveDown();
+			move(+1);
 			break;
 		case 'k':
-			moveUp();
+			move(-1);
 			break;
 
 		// change the list
@@ -128,8 +131,6 @@ function handleKey(key) {
 			validKey = false;
 			break;
 	}
-	if (validKey)
-		draw();
 }
 
 function run() {
