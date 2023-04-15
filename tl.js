@@ -2,6 +2,16 @@
 const fs = require('fs');
 const prpt = require('prompt-sync')();
 let status = new Object();
+let helpMode = false;
+const helpMessage = `Normal Mode:
+	- h                      display keys information (this page)
+	- CTRL-c, CTRL-d, CTRL-q close tl.js
+	- j, k                   move cursor
+	- a                      add element to the list
+	- r, c, s                change currently selected element
+	- Enter, Space           remove current item from list
+Help Mode:
+	- q                      exit help mode`;
 const DATADIR = `${process.env.HOME}/.local/share/tl.js`;
 const DATAFILE = `${DATADIR}/data`;
 
@@ -45,12 +55,16 @@ function startup() {
 function draw() {
 	console.clear();
 	console.log("\x1b[32;1m*TODO LIST*\x1b[0m");
-	if (status.list !== undefined && status.list.length > 0 && status.cursor !== undefined) {
-		for (let i = 0; i < status.list.length; i++) {
-			if (i == status.cursor)
-				console.log(`\n\x1b[45;30m* ${status.list[i]}\x1b[0m`);
-			else
-				console.log(`\n* ${status.list[i]}`)
+	if (helpMode) {
+		console.log(helpMessage);
+	} else {
+		if (status.list !== undefined && status.list.length > 0 && status.cursor !== undefined) {
+			for (let i = 0; i < status.list.length; i++) {
+				if (i == status.cursor)
+					console.log(`\n\x1b[45;30m* ${status.list[i]}\x1b[0m`);
+				else
+					console.log(`\n* ${status.list[i]}`)
+			}
 		}
 	}
 }
@@ -96,7 +110,6 @@ function remove() {
 		status.cursor = undefined;
 	draw();
 }
-
 function change() {
 	if (status.list !== undefined && status.cursor !== undefined) {
 		status.list.splice(status.cursor, 1, prompt(status.list[status.cursor]));
@@ -136,6 +149,18 @@ function handleKey(key) {
 		case '\u000d':
 			remove();
 			writeToFile();
+			break;
+
+		// help mode
+		case 'h':
+			helpMode = true;
+			draw();
+			break;
+		case 'q':
+			if (helpMode) {
+				helpMode = false;
+				draw();
+			}
 			break;
 
 		default:
