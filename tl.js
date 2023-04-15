@@ -134,11 +134,23 @@ function handleKey(key) {
 }
 
 function run() {
-	process.stdin.resume(); // this is necessary to listen to key events
-	draw(); // initial draw, then draw when a valid key is inserted
-	// I don't need a loop, because this is a event handler, and it doesn't get
-	// dispactched all the times
-	process.stdin.on('data', handleKey);
+	const args = process.argv.slice(2);
+	if (args.length == 0) {
+		process.stdin.resume(); // this is necessary to listen to key events
+		draw(); // initial draw, then draw when a valid key is inserted
+		// I don't need a loop, because this is a event handler, and it doesn't get
+		// dispactched all the times
+		process.stdin.on('data', handleKey);
+	} else {
+		const newTask = args.join(' ');
+		status.list.push(newTask);
+		fs.writeFileSync(DATAFILE, JSON.stringify(status), (err) => {
+			if (err) {
+				console.log(err);
+				console.log(JSON.stringify(status)); // log `status` to `stdout` on error
+			}
+		})
+	}
 }
 
 bootstrap();
