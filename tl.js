@@ -12,15 +12,19 @@ function bootstrap() {
 		fs.appendFileSync(DATAFILE, JSON.stringify(status));
 }
 
-function close() {
-	process.stdin.setRawMode(false);
-	console.log("\x1b[?25h"); // show cursor again
+function writeToFile() {
 	fs.writeFileSync(DATAFILE, JSON.stringify(status), (err) => {
 		if (err) {
 			console.log(err);
-			console.log(JSON.stringify(status)); // log `status` to `stdout` on error
+			console.log(JSON.stringify(status));
 		}
 	})
+}
+
+function close() {
+	process.stdin.setRawMode(false);
+	console.log("\x1b[?25h"); // show cursor again
+	writeToFile();
 }
 
 function startup() {
@@ -30,6 +34,11 @@ function startup() {
 	console.log("\x1b[?25l"); // hide cursor
 
 	status = JSON.parse(fs.readFileSync(DATAFILE));
+	fs.watch(DATAFILE, (eventType, fname) => {
+		if (eventType === 'change')
+			status = JSON.parse(fs.readFileSync(DATAFILE));
+			draw();
+	});
 }
 
 // FIXME: app flickers at every redraw
@@ -96,7 +105,6 @@ function change() {
 }
 
 function handleKey(key) {
-	var validKey = true;
 	switch (key) {
 		// exit
 		case '\u0003':
@@ -116,19 +124,21 @@ function handleKey(key) {
 		// change the list
 		case 'a':
 			append();
+			writeToFile();
 			break;
 		case 'r':
 		case 'c':
 		case 's':
 			change();
+			writeToFile();
 			break;
 		case '\u0020':
 		case '\u000d':
 			remove();
+			writeToFile();
 			break;
 
 		default:
-			validKey = false;
 			break;
 	}
 }
@@ -144,12 +154,7 @@ function run() {
 	} else {
 		const newTask = args.join(' ');
 		status.list.push(newTask);
-		fs.writeFileSync(DATAFILE, JSON.stringify(status), (err) => {
-			if (err) {
-				console.log(err);
-				console.log(JSON.stringify(status)); // log `status` to `stdout` on error
-			}
-		})
+		process.exit();
 	}
 }
 
