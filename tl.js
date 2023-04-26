@@ -51,20 +51,25 @@ function startup() {
 	});
 }
 
-// FIXME: app flickers at every redraw
+function print_list() {
+	for (let i = 0; i < status.list.length; i++) {
+		if (i == status.cursor)
+			console.log(`\n\x1b[45;30m* ${status.list[i]}\x1b[0m`);
+		else
+			console.log(`\n* ${status.list[i]}`)
+	}
+}
+
 function draw() {
 	console.clear();
 	console.log("\x1b[32;1m*TODO LIST*\x1b[0m");
 	if (helpMode) {
 		console.log(helpMessage);
 	} else {
-		if (status.list !== undefined && status.list.length > 0 && status.cursor !== undefined) {
-			for (let i = 0; i < status.list.length; i++) {
-				if (i == status.cursor)
-					console.log(`\n\x1b[45;30m* ${status.list[i]}\x1b[0m`);
-				else
-					console.log(`\n* ${status.list[i]}`)
-			}
+		if (status.list !== undefined &&
+			status.list.length > 0 &&
+			status.cursor !== undefined) {
+			print_list();
 		}
 	}
 }
