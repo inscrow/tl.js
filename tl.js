@@ -22,6 +22,8 @@ function bootstrap() {
 		fs.appendFileSync(DATAFILE, JSON.stringify(status));
 }
 
+// TODO: restart program when this script is changed
+
 function writeToFile() {
 	fs.writeFileSync(DATAFILE, JSON.stringify(status), (err) => {
 		if (err) {
@@ -46,7 +48,7 @@ function startup() {
 	status = JSON.parse(fs.readFileSync(DATAFILE));
 	fs.watch(DATAFILE, (eventType, fname) => {
 		if (eventType === 'change')
-			status = JSON.parse(fs.readFileSync(DATAFILE));
+			status = JSON.parse(fs.readFileSync(fname));
 			draw();
 	});
 }
@@ -129,7 +131,6 @@ function handleKey(key) {
 		case '\u0004':
 		case '\u0011':
 			process.exit();
-			break; // leaving here just in case `process.exit()` fails for some reason
 
 		// move cursor
 		case 'j':
