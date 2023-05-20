@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const process = require('process');
+const { spawn } = require('child_process');
 const prpt = require('prompt-sync')();
+
 let status = new Object();
 let helpMode = false;
 const helpMessage = `Normal Mode:
@@ -14,6 +17,8 @@ Help Mode:
 	- q                      exit help mode`;
 const DATADIR = `${process.env.HOME}/.local/share/tl.js`;
 const DATAFILE = `${DATADIR}/data`;
+const progname = process.argv[1];
+const args = process.argv.slice(2);
 
 function bootstrap() {
 	if (!fs.existsSync(DATADIR))
@@ -22,7 +27,18 @@ function bootstrap() {
 		fs.appendFileSync(DATAFILE, JSON.stringify(status));
 }
 
-// TODO: restart program when this script is changed
+function restart() {
+	const pid = process.pid;
+	const newInstance = spawn(progname, args, { detached: true, shell: true });
+
+	newInstance.on('error', (err) => {
+		console.error('Failed restarting.');
+	});
+
+	// FIXME: newInstance gets killed too
+	// newInstance.unref(); // let this process end without killing newInstance
+	process.kill(pid);
+}
 
 function writeToFile() {
 	fs.writeFileSync(DATAFILE, JSON.stringify(status), (err) => {
@@ -47,9 +63,17 @@ function startup() {
 
 	status = JSON.parse(fs.readFileSync(DATAFILE));
 	fs.watch(DATAFILE, (eventType, fname) => {
-		if (eventType === 'change')
+		if (eventType === 'change') {
 			status = JSON.parse(fs.readFileSync(fname));
 			draw();
+		}
+	});
+	// Restart when script file is modified
+	fs.watch(__filename, (eventType, fname) => {
+		if (eventType === 'change') {
+			writeToFile();
+			restart();
+		}
 	});
 }
 
@@ -175,7 +199,6 @@ function handleKey(key) {
 }
 
 function run() {
-	const args = process.argv.slice(2);
 	if (args.length == 0) {
 		process.stdin.resume(); // this is necessary to listen to key events
 		draw(); // initial draw, then draw when a valid key is inserted
